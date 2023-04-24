@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>03.07 - Помічник GridHelper </title>
+	<script src="./js/three.min.js"></script>
+	<script src="./js/OrbitControls.js"></script>
+
+
+
+</head>
+
+<body>
+
+	<script>
+
+
+		init();
+
+		function init() {
+
+			// створюємо рендер і задаємо розмір
+			var renderer = window.WebGLRenderingContext ? new THREE.WebGLRenderer({ antialias: true }) : new THREE.CanvasRenderer();
+			renderer.setClearColor(new THREE.Color(0xEEEEEE));
+			renderer.setSize(window.innerWidth, window.innerHeight);
+
+			renderer.shadowMapSoft = true;
+			renderer.shadowMap.enabled = true;
+			renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+			// додаємо вивід візуалізатора до html-елементу
+			document.body.appendChild(renderer.domElement);
+
+			// створюємо сцену, яка буде містити всі наші елементи, такі як об'єкти, камери і джерела світла
+			var scene = new THREE.Scene();
+
+			// створюємо камеру
+			var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
+
+
+			camera.position.set(-1200, 600, 1600);
+			camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+			var controls = new THREE.OrbitControls(camera, renderer.domElement);
+			controls.target = new THREE.Vector3(0, 0, 0);
+
+			// завантажити текстуру
+			var texture = THREE.ImageUtils.loadTexture('./images/texture1.png');
+			texture.repeat.set(10, 10);
+			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+			texture.anisotropy = 16;
+			texture.needsUpdate = true;
+
+			var textureBump = THREE.ImageUtils.loadTexture('./images/bump1.jpg');
+			textureBump.repeat.set(10, 10);
+			textureBump.wrapS = textureBump.wrapT = THREE.RepeatWrapping;
+			textureBump.anisotropy = 16;
+			textureBump.needsUpdate = true;
+
+			// підготувати годинник
+			var clock = new THREE.Clock();
+
+			// додати directional light
+			dLight = new THREE.DirectionalLight(0xffffff, 2);
+			dLight.position.set(400, 400, 0);
+			dLight.castShadow = true;
+			dLight.shadowMapWidth = dLight.shadowMapHeight = 1000;
+
+			var d = 500;
+
+			dLight.shadow.camera.left = d;
+			dLight.shadow.camera.right = - d;
+			dLight.shadow.camera.top = - d;
+			dLight.shadow.camera.bottom = d;
+
+			dLight.shadow.camera.far = 1000;
+			dLight.shadow.bias = - 0.0001;
+
+			scene.add(dLight);
+
+			// додати площину
+			var plane_Geometry = new THREE.PlaneGeometry(1200, 1200, 1, 1);
+			plane = new THREE.Mesh(plane_Geometry, new THREE.MeshLambertMaterial({ color: 0x9669FE }));
+			plane.position.y = -20;
+			plane.rotation.x = - Math.PI / 2;
+			plane.receiveShadow = true;
+			scene.add(plane);
+
+			// створити new group (Object3D)
+			var group = new THREE.Object3D();
+
+			// додати дві сфери
+
+			var cone = drawCone(-100, 150, new THREE.MeshPhongMaterial({ map: texture, bumpMap: textureBump, color: 0x00ff00, specular: 0xff2200, emissive: 0x004000 }));
+			var cone2 = drawCone(100, 150, new THREE.MeshPhongMaterial({ map: texture, bumpMap: textureBump, color: 0x00ff00, specular: 0xff2200, shininess: 3 }));
+
+			//.. і додати їх до групи
+			group.add(cone);
+			group.add(cone2);
+
+			scene.add(group);
+
+
+			// add helpers:
+
+			// GridHelper
+			var gridHelper = new THREE.GridHelper(1000, 12); // 1000 is grid size, 12 is grid step
+			gridHelper.position = new THREE.Vector3(50, 0, 0);
+			gridHelper.rotation = new THREE.Euler(0, 50, 0);
+			scene.add(gridHelper);
+
+
+			function drawCone(x, z, material) {
+				var cone = new THREE.Mesh(new THREE.ConeGeometry(70, 70, 20), material);
+				cone.rotation.x = cone.rotation.z = Math.PI * Math.random();
+				cone.position.x = x;
+				cone.position.y = 100;
+				cone.position.z = z;
+				cone.castShadow = cone.receiveShadow = true;
+
+				return cone;
+			}
+			renderScene();
+
+			function renderScene() {
+
+				requestAnimationFrame(renderScene);
+				controls.update(clock.getDelta());
+
+
+				renderer.render(scene, camera);
+			}
+
+		};
+
+	</script>
+</body>
+
+</html>
