@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+    <head> 
+         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+         <title>04.03 - SpotLight </title>
+	     <script src="./js/three.js"></script>
+		 <script src="./js/TrackballControls.js"></script>		
+	     <script src="./js/dat.gui.js"></script>
+	</head>
+	<body>
+        
+		<script>
+
+		
+		init();
+	
+			function init()
+			{
+				var stopMovingLight = false;  
+				// створюємо рендер і задаємо розмір
+				var renderer = window.WebGLRenderingContext ? new THREE.WebGLRenderer({antialias:true}) : new THREE.CanvasRenderer();
+				renderer.setClearColor(new THREE.Color(0xEEEEEE));
+			   	renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.shadowMapEnabled = true;
+				
+				renderer.shadowMapSoft = true;
+				renderer.shadowMapType = THREE.PCFShadowMap;
+				// додаємо вивід візуалізатора до html-елементу
+				document.body.appendChild( renderer.domElement );
+				
+				// створюємо камеру
+				var camera = new THREE.PerspectiveCamera(45,window.innerWidth / window.innerHeight, 0.1,100);
+				
+				// створюємо сцену, яка буде містити всі наші елементи, такі як об'єкти, камери і джерела світла
+				var scene = new THREE.Scene();
+				var trackballcontrols = new THREE.TrackballControls( camera, renderer.domElement );
+				
+ 
+				
+                var planeGeometry = new THREE.PlaneGeometry(60,20,1,1);
+				var plane_texture = new THREE.TextureLoader().load( './images/7q.jpg' );
+				var plane_material = new THREE.MeshLambertMaterial({map: plane_texture});
+				var plane = new THREE.Mesh(planeGeometry,plane_material);
+			    plane.receiveShadow = true;
+
+				plane.rotation.x=-0.5*Math.PI;
+				plane.position.x = 15;
+				plane.position.y = 0;
+				plane.position.z = 0;
+				scene.add(plane);
+		
+				var cube_geometry = new THREE.ConeGeometry(4, 4, 4);
+				var cube_texture = new THREE.TextureLoader().load( './images/1q.jpg' );
+				var cube_material = new THREE.MeshLambertMaterial({map: cube_texture});
+				var cube = new THREE.Mesh(cube_geometry, cube_material);
+				cube.castShadow = true;
+				cube.position.x = -4;
+				cube.position.y = 3;
+				cube.position.z = 0;
+				scene.add(cube);
+
+	
+				camera.position.x = -25;
+				camera.position.y = 30;
+				camera.position.z = 25;
+				camera.lookAt(new THREE.Vector3(10, 0, 0));
+        
+				// додаємо освітлення ambient lighting
+				// AmbientLight - це світло, яке освітлює всю сцену. 
+				// Воно не має напрямку і освітлює кожен об'єкт сцени в рівній мірі, 
+				// незалежно від розташування об'єкта. 
+				// Відповідно, у цього світла немає позиції на осі координат. 
+				// Цей світ не може використовуватися для створення тіней.
+    
+				var ambiColor = "#e3e1e1";
+				var ambientLight = new THREE.AmbientLight(ambiColor);
+				scene.add(ambientLight);
+
+				// SpotLight - світло з ефектом конуса
+				var spotLight0 = new THREE.SpotLight(0xcccccc);
+				spotLight0.position.set(-40, 30, -10);
+				spotLight0.lookAt(plane);
+				scene.add(spotLight0);
+        
+				var target = new THREE.Object3D();
+				target.position = new THREE.Vector3(5, 0, 0);
+				
+				// PointLight - освітлення, що виходить з однієї точки в усіх напрямках 
+				// (це джерело освітлення можна порівняти зі звичайною лампочкою).
+				var pointColor = "#ffffff";
+        		var spotLight = new THREE.SpotLight(pointColor);
+				spotLight.position.set(-40, 60, -10);
+				spotLight.castShadow = true;
+				spotLight.shadowCameraNear = 2;
+				spotLight.shadowCameraFar = 200;
+				spotLight.shadowCameraFov = 30;
+				spotLight.target = cube;
+				spotLight.distance = 0;
+				spotLight.angle = 0.4;
+				scene.add(spotLight);
+        
+				// додаємо невелику сферу, яка імітує PointLight
+				var sphereLight = new THREE.CubeGeometry(1);
+				var sphereLightMaterial = new THREE.MeshBasicMaterial({color: 0xac6c25});
+				var sphereLightMesh = new THREE.Mesh(sphereLight, sphereLightMaterial);
+				sphereLightMesh.castShadow = true;
+				sphereLightMesh.position = new THREE.Vector3(3, 0, 3);
+				scene.add(sphereLightMesh);
+			
+				
+				var invert = 1;
+				var phase = 0;
+
+				var step = 0;
+				var controls = new function () {
+				this.rotationSpeed = 0.02;
+				this.AmbientLightColor = ambiColor;
+				this.pointColor = pointColor;
+				this.intensity = 1;
+				this.distance = 0;
+				this.exponent = 30;
+				this.angle = 0.1;
+				this.castShadow = true;
+				this.target = "Cube";
+				this.stopMovingLight = false;
+            };
+       
+
+				var gui = new dat.GUI();
+				gui.addColor(controls, 'AmbientLightColor').onChange(function (e) {
+				ambientLight.color = new THREE.Color(e);
+				});
+ 
+				gui.addColor(controls, 'pointColor').onChange(function (e) {
+				spotLight.color = new THREE.Color(e);
+				});
+				gui.add(controls, 'angle', 0, Math.PI * 2).onChange(function (e) {
+				spotLight.angle = e;
+				});
+				gui.add(controls, 'intensity', 0, 5).onChange(function (e) {
+				spotLight.intensity = e;
+				});
+				gui.add(controls, 'distance', 0, 200).onChange(function (e) {
+				spotLight.distance = e;
+				});
+				gui.add(controls, 'exponent', 0, 100).onChange(function (e) {
+				spotLight.exponent = e;
+				});
+			
+				gui.add(controls, 'castShadow').onChange(function (e) {
+				spotLight.castShadow = e;
+				});
+			
+				gui.add(controls, 'target', ['Plane', 'Cube']).onChange(function (e) {
+				console.log(e);
+				switch (e) {
+                case "Plane":
+                    spotLight.target = plane;
+                    break;
+            
+                case "Cube":
+                    spotLight.target = cube;
+                    break;
+					}
+				});
+				gui.add(controls, 'stopMovingLight').onChange(function (e) {
+				stopMovingLight = e;
+				});
+			
+				
+	 			renderScene();
+
+		function renderScene() 
+			{
+ 
+		 	cube.rotation.x += controls.rotationSpeed;
+            cube.rotation.y += controls.rotationSpeed;
+            cube.rotation.z += controls.rotationSpeed;
+			
+			// move the light simulation
+            if (!stopMovingLight) {
+                if (phase > 2 * Math.PI) {
+                    invert = invert * -1;
+                    phase -= 2 * Math.PI;
+                } else {
+                    phase += controls.rotationSpeed;
+                }
+                sphereLightMesh.position.z = +(9 * (Math.sin(phase)));
+                sphereLightMesh.position.x = +(3 * (Math.cos(phase)));
+                sphereLightMesh.position.y = 9;
+                if (invert < 0) {
+                    var pivot = 3;
+                    sphereLightMesh.position.x = (invert * (sphereLightMesh.position.x - pivot)) + pivot;
+                }
+                spotLight.position.copy(sphereLightMesh.position);
+            }
+				     
+			requestAnimationFrame( renderScene );
+			trackballcontrols.update();
+			renderer.render( scene, camera );
+			}	
+			
+		
+			
+};
+
+
+		</script>
+	</body>
+</html>

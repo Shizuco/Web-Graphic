@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>04.01 - Ambient Light </title>
+	<script src="./js/three.js"></script>
+	<script src="./js/TrackballControls.js"></script>
+	<script src="./js/dat.gui.js"></script>
+</head>
+
+<body>
+
+	<script>
+
+
+		init();
+
+		function init() {
+
+			// створюємо рендер і задаємо розмір
+			var renderer = window.WebGLRenderingContext ? new THREE.WebGLRenderer({ antialias: true }) : new THREE.CanvasRenderer();
+			renderer.setClearColor(new THREE.Color(0xEEEEEE));
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			// додаємо вивід візуалізатора до html-елементу
+			document.body.appendChild(renderer.domElement);
+
+			// створюємо камеру
+			var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+
+			// створюємо сцену, яка буде містити всі наші елементи, такі як об'єкти, камери і джерела світла
+			var scene = new THREE.Scene();
+			var trackballcontrols = new THREE.TrackballControls(camera, renderer.domElement);
+
+			var planeGeometry = new THREE.PlaneGeometry(60, 20, 1, 1);
+			var plane_texture = new THREE.TextureLoader().load('./images/7q.jpg');
+			var plane_material = new THREE.MeshLambertMaterial({ map: plane_texture });
+			var plane = new THREE.Mesh(planeGeometry, plane_material);
+
+			plane.rotation.x = -0.5 * Math.PI;
+			plane.position.x = 15;
+			plane.position.y = 0;
+			plane.position.z = 0;
+			scene.add(plane);
+
+			var cube_geometry = new THREE.ConeGeometry(4, 4, 4);
+			var cube_texture = new THREE.TextureLoader().load('./images/1q.jpg');
+			var cube_material = new THREE.MeshLambertMaterial({ map: cube_texture });
+			var cube = new THREE.Mesh(cube_geometry, cube_material);
+
+			cube.position.x = -4;
+			cube.position.y = 3;
+			cube.position.z = 0;
+			scene.add(cube);
+
+
+			camera.position.x = -25;
+			camera.position.y = 30;
+			camera.position.z = 25;
+			camera.lookAt(new THREE.Vector3(10, 0, 0));
+
+			// додаємо освітлення ambient lighting
+			// AmbientLight - це світло, яке освітлює всю сцену. 
+			// Воно не має напрямку і освітлює кожен об'єкт сцени в рівній мірі, 
+			// незалежно від розташування об'єкта. 
+			// Відповідно, у цього світла немає позиції на осі координат. 
+			// Цей світ не може використовуватися для створення тіней.
+			var ambiColor = "#e3e1e1";
+			var ambiIntensity = 1;
+			var ambientLight = new THREE.AmbientLight(ambiColor, ambiIntensity);
+			scene.add(ambientLight);
+
+
+
+			var controls = new function () {
+				this.rotationSpeed = 0.02;
+				this.AmbientLightColor = ambiColor;
+				this.intensity = 1;
+			};
+
+			var gui = new dat.GUI();
+			gui.addColor(controls, 'AmbientLightColor').onChange(function (e) {
+				ambientLight.color = new THREE.Color(e);
+			});
+			gui.add(controls, 'intensity', 0, 3).onChange(function (e) {
+				ambientLight.intensity = e;
+			});
+
+
+
+			renderScene();
+
+			function renderScene() {
+
+				cube.rotation.x += controls.rotationSpeed;
+				cube.rotation.y += controls.rotationSpeed;
+				cube.rotation.z += controls.rotationSpeed;
+
+				requestAnimationFrame(renderScene);
+				trackballcontrols.update();
+				renderer.render(scene, camera);
+			}
+
+
+
+		};
+
+
+	</script>
+</body>
+
+</html>
