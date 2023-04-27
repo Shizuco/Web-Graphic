@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>06.02 - Створення структурних об'єктів </title>
+	<script src="./js/three.js"></script>
+	<script src="./js/TrackballControls.js"></script>
+</head>
+
+<body>
+
+	<script>
+
+
+		init();
+
+		function init() {
+
+			// створюємо рендер і задаємо розмір
+			var renderer = window.WebGLRenderingContext ? new THREE.WebGLRenderer({ antialias: true }) : new THREE.CanvasRenderer();
+			renderer.setClearColor(new THREE.Color(0xffffff));
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			// додаємо вивід візуалізатора до html-елементу
+			document.body.appendChild(renderer.domElement);
+			// створюємо камеру
+			var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+			// створюємо сцену, яка буде містити всі наші елементи, такі як об'єкти, камери і джерела світла
+			var scene = new THREE.Scene();
+
+			var controls = new THREE.TrackballControls(camera);
+			camera.position.z = 500;
+			camera.position.y = 150;
+			scene.add(camera);
+
+			var ambientLight = new THREE.AmbientLight(0xffffff);
+			scene.add(ambientLight);
+
+			var girl = new THREE.Object3D();
+
+			var material = new THREE.MeshBasicMaterial({ color: 0xADD8E6 });
+			var geometry = new THREE.ConeGeometry(30, 36, 36);
+			var cone1 = new THREE.Mesh(geometry, material);
+			cone1.position.set(0, 60, 0);
+			girl.add(cone1);
+
+			var material = new THREE.MeshBasicMaterial({ color: 0x00008B });
+			var geometry = new THREE.SphereGeometry(15, 18, 16);
+			var sphere1 = new THREE.Mesh(geometry, material);
+			sphere1.position.set(0, 80, 0);
+			girl.add(sphere1);
+
+			var material = new THREE.MeshBasicMaterial({ color: 0x8B008B });
+			var geometry = new THREE.SphereGeometry(2, 4, 4);
+			var sphere2 = new THREE.Mesh(geometry, material);
+			sphere2.position.set(15, 80, 7);
+			girl.add(sphere2);
+
+			var material = new THREE.MeshBasicMaterial({ color: 0x8B008B });
+			var geometry = new THREE.SphereGeometry(2, 4, 4);
+			var sphere3 = new THREE.Mesh(geometry, material);
+			sphere3.position.set(15, 80, -7);
+			girl.add(sphere3);
+
+			var material = new THREE.MeshBasicMaterial({ color: 0xFFFF00 });
+			var geometry = new THREE.CubeGeometry(7, 26, 7);
+			var cube1 = new THREE.Mesh(geometry, material);
+			cube1.position.set(0, 30, -7);
+			girl.add(cube1);
+
+			var material = new THREE.MeshBasicMaterial({ color: 0xFFFF00 });
+			var geometry = new THREE.CubeGeometry(7, 26, 7);
+			var cube2 = new THREE.Mesh(geometry, material);
+			cube2.position.set(0, 30, 7);
+			girl.add(cube2);
+		
+			girl.position.set(0, 0, 0);
+			scene.add(girl);
+
+
+
+			renderScene();
+
+			function renderScene() {
+
+
+				girl.rotation.y += 0.02;
+				girl.rotation.z += 0.02;
+
+
+				requestAnimationFrame(renderScene);
+				controls.update();
+				renderer.render(scene, camera);
+			}
+
+		};
+
+
+	</script>
+</body>
+
+</html>
