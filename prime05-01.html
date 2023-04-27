@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>05.01 - Відео в якості текстури </title>
+	<script src="./js/three.js"></script>
+	<script src="./js/dat.gui.js"></script>
+	<script src="./js/TrackballControls.js"></script>
+
+</head>
+
+<body>
+	<video id="video" loop style="display:none; position: absolute; left: 15px; top: 75px;" src="./movies/NewVideo1.mp4">
+	</video>
+
+	<script>
+
+
+		init();
+
+		function init() {
+
+			// створюємо рендер і задаємо розмір
+			var renderer = window.WebGLRenderingContext ? new THREE.WebGLRenderer({ antialias: true }) : new THREE.CanvasRenderer();
+			renderer.setClearColor(new THREE.Color(0xEEEEEE));
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			// додаємо вивід візуалізатора до html-елементу
+			document.body.appendChild(renderer.domElement);
+
+
+			var video = document.getElementById('video');
+			var videoTexture = new THREE.Texture(video);
+			videoTexture.minFilter = THREE.LinearFilter;
+			videoTexture.magFilter = THREE.LinearFilter;
+			videoTexture.format = THREE.RGBFormat;
+			videoTexture.generateMipmaps = false;
+
+			// створюємо камеру
+			var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+			// створюємо сцену, яка буде містити всі наші елементи, такі як об'єкти, камери і джерела світла
+			var scene = new THREE.Scene();
+			var trackballcontrols = new THREE.TrackballControls(camera, renderer.domElement);
+			var cube;
+
+
+			cube = createMesh(new THREE.ConeGeometry(10, 1, 4));
+			cube.position.y = 2;
+			scene.add(cube);
+
+			cube.position.y = 2;
+			cube.name = 'cube';
+			scene.add(cube);
+
+
+			// position and point the camera to the center of the scene
+			camera.position.x = 00;
+			camera.position.y = 1;
+			camera.position.z = 28;
+			camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+			var ambiLight = new THREE.AmbientLight(0x141414);
+
+			scene.add(ambiLight);
+
+			var light = new THREE.DirectionalLight();
+			light.position.set(0, 30, 20);
+			scene.add(light);
+
+			// setup the control gui
+			var controls = new function () {
+
+				this.showVideo = false;
+				this.rotate = false;
+				this.scale = 1;
+
+				this.showCanvas = function () {
+					if (controls.showVideo) {
+						video.play();
+					} else {
+						video.pause();
+					}
+				}
+
+			};
+
+
+			var gui = new dat.GUI();
+			gui.add(controls, "rotate");
+			gui.add(controls, "showVideo").onChange(controls.showCanvas);
+			gui.add(controls, 'scale', 0.01, 5);
+
+			renderScene();
+
+			function createMesh(geom) {
+
+				var materialArray = [];
+				materialArray.push(new THREE.MeshBasicMaterial({ color: 0x0051ba }));
+				materialArray.push(new THREE.MeshBasicMaterial({ color: 0x0051ba }));
+				materialArray.push(new THREE.MeshBasicMaterial({ map: videoTexture }));
+
+				var mesh = new THREE.Mesh(geom, materialArray);
+
+				return mesh;
+			}
+
+
+			function renderScene() {
+
+				if (controls.rotate) {
+					cube.rotation.x += -0.01;
+					cube.rotation.y += -0.01;
+					cube.rotation.z += -0.01;
+				}
+				scene.getObjectByName('cube').scale.set(controls.scale, controls.scale, controls.scale);
+				videoTexture.needsUpdate = true;
+				requestAnimationFrame(renderScene);
+				trackballcontrols.update();
+				renderer.render(scene, camera);
+			}
+
+		};
+
+
+	</script>
+</body>
+
+</html>
