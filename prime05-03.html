@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+    <head> 
+         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+         <title>05.03 - 3D текст з текстурою </title>
+	     <script src="./js/three.js"></script>
+		 <script src="./js/TrackballControls.js"></script>		
+	</head>
+	<body>
+        
+		<script>
+
+		
+		init();
+	
+			function init()
+			{
+				
+				// створюємо рендер і задаємо розмір
+				var renderer = window.WebGLRenderingContext ? new THREE.WebGLRenderer({antialias:true}) : new THREE.CanvasRenderer();
+				renderer.setClearColor(new THREE.Color(0xEEEEEE));
+                renderer.setSize( window.innerWidth, window.innerHeight );
+				// додаємо вивід візуалізатора до html-елементу
+				document.body.appendChild( renderer.domElement );
+				// створюємо камеру
+				var camera = new THREE.PerspectiveCamera(45,window.innerWidth / window.innerHeight, 0.1,1000);
+				// створюємо сцену, яка буде містити всі наші елементи, такі як об'єкти, камери і джерела світла
+				var scene = new THREE.Scene();
+			
+				var controls = new THREE.TrackballControls( camera );
+            	var ambiLight = new THREE.AmbientLight(0x141414);
+		
+				scene.add(ambiLight);
+	
+				var light = new THREE.DirectionalLight();
+				light.position.set(0, 80, 200);
+				scene.add(light);
+				
+				var fontLoader = new THREE.FontLoader();
+				fontLoader.load("./fonts/Academia Libera_Regular.json",function(tex){ 
+				var  text_Geometry = new THREE.TextGeometry("Лабораторна робота 7", {
+				size: 20,
+				height: 3,
+				curveSegments: 6,
+				bevelEnabled: true, 
+				bevelThickness: 2, 
+				bevelSize: 1, 
+				material: 0, 
+				extrudeMaterial: 1, 				
+				font: tex});
+				
+				var Texture = THREE.ImageUtils.loadTexture( 'images/bump1.jpg' ); 
+				Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping; 
+				Texture.repeat.set( 0.05, 0.05 ); 
+				var text_Material =  new THREE.MeshBasicMaterial( { map: Texture } ); 
+				var  text = new THREE.Mesh(text_Geometry , text_Material);
+				text_Geometry.center();
+				
+				scene.add(text);
+				})
+             
+
+				camera.position.x ==-50;
+				camera.position.y = 70;
+				camera.position.z = 200;
+				camera.lookAt(scene.position);
+
+	 			renderScene();
+
+				function renderScene() 
+				{
+ 
+		  		requestAnimationFrame( renderScene );
+				controls.update();
+				renderer.render( scene, camera );
+				}	
+			
+};
+
+		</script>
+	</body>
+</html>
