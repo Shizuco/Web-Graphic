@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>09 - Tween.js </title>
+	<script src="./js/three.js"></script>
+	<script src="./js/TrackballControls.js"></script>
+	<script src="./js/tween.js"></script>
+</head>
+
+<body>
+	<video id="video" loop autoplay="autoplay" style="display:none; position: absolute; left: 15px; top: 75px;"
+		src="./movies/NewVideo4.mp4">
+	</video>
+
+	<script>
+
+
+		init();
+
+		function init() {
+
+			// створюємо рендер і задаємо розмір
+			var renderer = window.WebGLRenderingContext ? new THREE.WebGLRenderer({ antialias: true }) : new THREE.CanvasRenderer();
+			renderer.setClearColor(new THREE.Color(0xEEEEEE));
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			renderer.shadowMapEnabled = true;
+			// додаємо вивід візуалізатора до html-елементу
+			document.body.appendChild(renderer.domElement);
+
+
+			var video = document.getElementById('video');
+			var videoTexture = new THREE.Texture(video);
+			videoTexture.minFilter = THREE.LinearFilter;
+			videoTexture.magFilter = THREE.LinearFilter;
+			videoTexture.format = THREE.RGBFormat;
+			videoTexture.generateMipmaps = false;
+
+
+
+			// створюємо камеру
+			var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+			// створюємо сцену, яка буде містити всі наші елементи, такі як об'єкти, камери і джерела світла
+			var scene = new THREE.Scene();
+
+			var controls = new THREE.TrackballControls(camera);
+
+			var ambientLight = new THREE.AmbientLight(0xffffff);
+			scene.add(ambientLight);
+			var spotLight = new THREE.SpotLight(0xffffff);
+
+			spotLight.position.set(-80, 120, -20);
+			spotLight.castShadow = true;
+			scene.add(spotLight);
+
+			var circle_position = { x: 90, y: 30 };
+			var circle_target = {};
+			circle_target.x = -90;
+			circle_target.y = -30;
+
+			var circle_geometry = new THREE.CircleGeometry(15, 100, 0, 2 * Math.PI);
+			var circle_texture = new THREE.TextureLoader().load('images/logo1.jpg');//load texture
+			var circle_material = new THREE.MeshLambertMaterial({ map: circle_texture });
+			circle_material.side = THREE.DoubleSide;
+			var circle = new THREE.Mesh(circle_geometry, circle_material);
+			circle.castShadow = true;
+			circle.position.x = -90;
+			circle.position.y = 0;
+			scene.add(circle);
+
+
+			var circle_tween = new TWEEN.Tween(circle_position).to(circle_target, 4000);
+			circle_tween.easing(TWEEN.Easing.Quadratic.In);
+			circle_tween.easing(TWEEN.Easing.Quadratic.Out);
+
+			circle_tween.start();
+
+			circle_tween.onUpdate(function () {
+				circle.position.x = circle_position.x;
+				circle.position.y = circle_position.y;
+				circle.rotation.x += 0.02;
+				circle.rotation.y += 0.02;
+				circle.rotation.z += 0.02;
+
+			});
+			circle_tween.repeat(2);
+			circle_tween.repeat(Infinity);
+
+			var fontLoader = new THREE.FontLoader();
+			fontLoader.load("./fonts/Academia Libera_Regular.json", function (tex) {
+				var text_Geometry = new THREE.TextGeometry("Лабораторна робота 9", {
+					size: 10,
+					height: 3,
+					curveSegments: 6,
+					bevelEnabled: true,
+					bevelThickness: 2,
+					bevelSize: 1,
+					material: 0,
+					extrudeMaterial: 1,
+					font: tex
+				});
+
+				var text_position = { x: -300, y: 100 };
+				var circle_position = { x: -300, y: 0 };
+				var plane_position = { x: 0, y: 300 };
+				var sphere_position = { x: 300, y: 0, z: 0 };
+
+				var plane_target = {};
+				plane_target.x = 25;
+				plane_target.y = 0;
+
+
+
+				var plane_geometry = new THREE.CubeGeometry(120, 40, 1, 1);
+				var plane_material = new THREE.MeshBasicMaterial({ map: videoTexture });
+				var plane = new THREE.Mesh(plane_geometry, plane_material);
+				plane.rotation.x = -0.5 * Math.PI;
+				plane.position.x = 0;
+				plane.position.y = 300;
+				scene.add(plane);
+
+				var plane_tween = new TWEEN.Tween(plane_position).to(plane_target, 2000);
+				plane_tween.start();
+
+				plane_tween.onUpdate(function () {
+					plane.position.x = plane_position.x;
+					plane.position.y = plane_position.y;
+				});
+				plane_tween.onComplete(function () {
+					var plane_tween_1 = new TWEEN.Tween(plane_position).to(plane_target, 2000);
+					plane_tween_1.start(
+					);
+
+				plane_tween_1.onUpdate(function () {
+					plane.rotation.x += 0.02;
+					video.play();
+				});
+
+				plane_tween_1.repeat(Infinity);
+			});
+
+
+			var Texture = THREE.ImageUtils.loadTexture('images/bump1.jpg');
+			Texture.wrapS = Texture.wrapT = THREE.RepeatWrapping;
+			Texture.repeat.set(0.05, 0.05);
+			var Material = new THREE.MeshBasicMaterial({ map: Texture });
+
+			var ExtrTexture = THREE.ImageUtils.loadTexture('images/texture1.png');
+			ExtrTexture.wrapS = ExtrTexture.wrapT = THREE.RepeatWrapping;
+			ExtrTexture.offset.set(0, 0.7);
+			ExtrTexture.repeat.set(0, 0.13);
+			var extrMaterial = new THREE.MeshBasicMaterial({ map: ExtrTexture });
+
+			var materials = [Material, extrMaterial];
+			var text = new THREE.Mesh(text_Geometry, materials);
+
+			var text_target = {};
+			text_target.x = -50;
+			text_target.y = 30;
+
+			text.position.x = -300;
+			text.position.y = 100;
+			scene.add(text);
+
+			var text_tween = new TWEEN.Tween(text_position).to(text_target, 2000);
+			text_tween.start();
+			text_tween.onUpdate(function () {
+				text.position.x = text_position.x;
+				text.position.y = text_position.y;
+				plane.position.x = plane_position.x;
+				plane.position.y = plane_position.y;
+			});
+		})
+
+
+		camera.position.x = -50;
+		camera.position.y = 70;
+		camera.position.z = 100;
+		camera.lookAt(scene.position);
+
+		renderScene();
+		//	tween.easing(TWEEN.Easing.Bounce.InOut);
+
+
+		function renderScene() {
+			videoTexture.needsUpdate = true;
+			requestAnimationFrame(renderScene);
+			controls.update();
+			TWEEN.update();
+
+			renderer.render(scene, camera);
+		}
+
+		};
+
+	</script>
+</body>
+
+</html>
