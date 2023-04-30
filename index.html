@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+    <head> 
+         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+         <title>Лабораторна робота 7</title>
+	     <script src="./js/three.js"></script>
+		 <script src="./js/TrackballControls.js"></script>		
+		 <script src="./js/dat.gui.js"></script>		
+	</head>
+	<body>
+        
+		<script>
+
+		
+		init();
+	
+			function init()
+			{
+
+				const Texture1 = THREE.ImageUtils.loadTexture( 'images/fire.jpg' ); 
+				const Texture2 =  THREE.ImageUtils.loadTexture( 'images/sky.jpg' ); 
+				
+				// створюємо рендер і задаємо розмір
+				var renderer = window.WebGLRenderingContext ? new THREE.WebGLRenderer({antialias:true}) : new THREE.CanvasRenderer();
+				renderer.setClearColor(new THREE.Color(0xEEEEEE));
+                renderer.setSize( window.innerWidth, window.innerHeight );
+				// додаємо вивід візуалізатора до html-елементу
+				document.body.appendChild( renderer.domElement );
+				// створюємо камеру
+				var camera = new THREE.PerspectiveCamera(45,window.innerWidth / window.innerHeight, 0.1,1000);
+				// створюємо сцену, яка буде містити всі наші елементи, такі як об'єкти, камери і джерела світла
+				var scene = new THREE.Scene();
+			
+				var controls = new THREE.TrackballControls( camera, renderer.domElement);
+            	var ambiLight = new THREE.AmbientLight(0x141414);
+		
+				scene.add(ambiLight);
+	
+				var light = new THREE.DirectionalLight();
+				light.position.set(0, 80, 200);
+				scene.add(light);
+				
+				var fontLoader = new THREE.FontLoader();
+				let f;
+				fontLoader.load("./fonts/Roboto_Regular.json",function(tex){ 
+					f = tex;	
+					text = makeText('Комп\'ютерна графіка у WEB', 20, f,makeOneTextureMaterial());
+					scene.add(text);
+				})
+             
+
+				camera.position.x ==-50;
+				camera.position.y = 70;
+				camera.position.z = 250;
+				camera.lookAt(scene.position);
+
+
+				//SpotLight controls
+				const textControls = new function(){
+					this.texture = 'Одна текстура';
+					this.fontSize = 20;
+					this.text = 'Комп\'ютерна графіка у WEB';
+				}();
+				const gui = new dat.GUI();
+				gui.add(textControls, 'texture', ['Одна текстура', 'Дві текстури']).onChange(function (value) {
+					console.log(value);
+					switch (value){
+						case 'Одна текстура':{							 
+							text.material = makeOneTextureMaterial(); 
+							break;
+						}
+						case 'Дві текстури':{							
+							text.material=makeTwoTexturesMaterial();
+							break;
+						}
+					}
+					
+				}); 
+				gui.add(textControls, 'fontSize', 10,30).onChange((val)=>{
+					//удаляем старый текст
+					scene.remove(scene.getObjectByName("text"));
+					//делаем новый
+					let m;
+					if(textControls.texture === 'Одна текстура'){
+						m = makeOneTextureMaterial();
+					}
+					else{
+						m = makeTwoTexturesMaterial();
+					}
+					text = makeText(textControls.text, val, f, m);
+					scene.add(text);
+				});
+				gui.add(textControls, "text").onFinishChange(function (value) {
+					//удаляем старый текст
+					scene.remove(scene.getObjectByName("text"));
+					//делаем новый
+					let m;
+					if(textControls.texture === 'Одна текстура'){
+						m = makeOneTextureMaterial();
+					}
+					else{
+						m = makeTwoTexturesMaterial();
+					}
+					text = makeText(value, textControls.fontSize, f, m);
+					scene.add(text);
+				});
+
+
+
+	 			renderScene();
+
+				function renderScene() 
+				{
+ 
+					requestAnimationFrame( renderScene );
+					controls.update();
+					renderer.render( scene, camera );
+				}	
+				function makeText(t, size, font, material){
+					var  text_Geometry = new THREE.TextGeometry(t, {
+						size,
+						height: 3,
+						curveSegments: 6,
+						bevelEnabled: true, 
+						bevelThickness: 2, 
+						bevelSize: 1, 
+						material: 0, 
+						extrudeMaterial: 1, 				
+						font
+					});
+					text = new THREE.Mesh(text_Geometry, material );
+					text_Geometry.center();
+					text.name = 'text';
+					return text;					
+				}
+				function makeOneTextureMaterial(){
+					Texture1.wrapS = Texture1.wrapT = THREE.RepeatWrapping; 
+					Texture1.repeat.set( 0.05, 0.05 ); 
+					const m = new THREE.MeshBasicMaterial( { map: Texture1 } );
+					return m;
+				}
+				function makeTwoTexturesMaterial(){
+					Texture1.wrapS = Texture1.wrapT = THREE.RepeatWrapping; 
+					Texture1.repeat.set( 0.05, 0.05 );  
+					
+					// var ExtrTexture =  THREE.ImageUtils.loadTexture( 'images/sky.jpg' ); 
+					Texture2.wrapS = Texture2.wrapT  = THREE.RepeatWrapping;
+					Texture2.offset.set( 0, 0.7 );
+					Texture2.repeat.set( 0, 0.13 ); 
+		
+					const materials = [ new THREE.MeshBasicMaterial( { map: Texture1 } ), new THREE.MeshBasicMaterial( { map: Texture2 } ) ]; 
+					return materials;
+				}
+			
+};
+
+		</script>
+	</body>
+</html>
